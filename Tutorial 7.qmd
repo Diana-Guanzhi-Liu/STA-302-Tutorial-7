@@ -1,0 +1,193 @@
+---
+title: "STA 302 Tutorial 7"
+format: pdf
+author: Diana Liu
+thanks: "Code and data are available at:" 
+date: 22 February 2024
+date-format: long
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+observations <- 1000
+mean <- 1
+sd <- 1
+
+library(dplyr)
+library(ggpubr)
+library(kableExtra)
+```
+
+# Introduction
+In this exercise, we simulate how errors in data collection and cleaning can effect the estimated mean of a dataset and discuss potential ways to catch errors. 
+
+
+# Data
+First we simulate a data set of 900 observations with normal distribution, mean of 1 and standard deviation of 1. In situation 1, the last 100 observations of the data set has been replaced with the first 100. This is simulated by storing the first 100 observations in a variable then adding them to the end of the data set. Now the data set has 1000 observations and the first 100 are identical to the last 100 (@tbl-situation-1).
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-situation-1
+#| tbl-cap: "Comparing the first the first 10 observations to the 901 to 910 observations, we find that they are identical due to over-writing by the instrument"
+#1. Unknown to us, the instrument has a mistake in it, which means that it has a maximum memory of 900 observations, and begins over-writing at that point, so the final 100 observations are actually a repeat of the first 100.
+
+set.seed(123)
+simulation <- tibble(draws = rnorm(n = observations - 100, mean = mean, sd = sd))
+first_100 <- head(simulation, 100)
+simulation <- add_row(simulation, first_100)
+
+head <- kable(head(simulation, 10), col.names = "head")
+tail <- kable(simulation[901:910, "draws"], col.names = "tail")
+knitr::kable(list(head, tail))
+```
+
+Then half of the negative numbers in the data set are changed to positives. First we count the number of negative numbers and divide it by two to get the amount of negatives that has to be changed. Then we iterate through the data set and change negatives to positives by multiplying by -1 until half of negatives have been changed (@tbl-situation-2). If we scroll through the data set, negative numbers only being to appear after 500 observations, which is consistent with turning the first half of them positive.
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-situation-2
+#| tbl-cap: "Comparing the first 10 observations after the change to before, notice that the negative observation has been turned positive"
+#2. We employ a research assistant to clean and prepare the data set. During the process of doing this, unknown to us, they accidentally change half of the negative draws to be positive.
+
+half_of_negative_draws <- round(sum(simulation$draws < 0, na.rm=TRUE)/2, 0)
+negative_draws <- 0
+
+for(i in 1:nrow(simulation)){
+  if(negative_draws < half_of_negative_draws){
+    if(simulation[i, "draws"] < 0){
+      simulation[i, "draws"] <- simulation[i, "draws"] * -1
+      negative_draws <- negative_draws + 1
+    }
+  }
+}
+head2 <- kable(head(simulation, 10), col.names = "head_no_negatives")
+knitr::kable(list(head, head2))
+```
+Now we change the decimal place of any value between 1 and 1.1. To do this we iterate through the data set and check if the observation is between 1 and 1.1, if true, multiply it by 0.1, shifting the decimal to the left (@tbl-situation-3).
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-situation-3
+#| tbl-cap: "Comparing the first 10 observations from after this change to when the data set was first simulated, decimals for observations between 1 and 1.1 have been shifted to the left "
+# 3. They additionally, accidentally, change the decimal place on any value between 1 and 1.1, so that, for instance 1 becomes 0.1, and 1.1 would become 0.11.
+
+for(i in 1:nrow(simulation)){
+  if(simulation[i, "draws"] <= 1.1 & simulation[i, "draws"] >= 1){
+    simulation[i, "draws"] <- simulation[i, "draws"] * 0.1
+  }
+}
+head3 <- kable(head(simulation, 10), col.names = "head_smaller_decimals")
+knitr::kable(list(head, head3))
+```
+
+# Discussion
+Now the mean, standard deviation, and standard error from the simulated data set with errors can be comared to a simulated data set without errors. We know that the true mean and standard deviation would be one, and the error free data set has mean of 1.03 and standard deviation of 1 which are quite close (@tbl-error-free). Its density function looks to be perfectly normally distributed with mean of one (@fig-dataset-graphs).The data set with errors has mean of 0.99, standard deviation of 1, and error of 0.03 (@tbl-error).
+
+The change in situation 1 caused the first 100 observations to be the same as the last 100 so there are only 900 unique observations compared to 1000 for the error free data set. This is unlikely to significantly effect the mean & standard deviation and distribution because the observations are randomly generated and the number of observations were not significantly effected. 
+
+Situation 2 caused half of negative observations to become positive. This will increase the mean of the data set with errors. We expect observations to be normally distributed around 1 with standard deviation of 1 so most observations are between 0 and 2. This means that situation 2 is unlikely to effect standard deviation as any negative numbers that are converted to positive numbers influence sd by the same amount. 
+
+Situation 3 decreased the mean by decreasing observations from 1 to 1.1 by a factor of ten. this is likely why the estimated mean is smaller than the true mean by approximately a factor of ten. This also decreases standard deviation as observations between 1 and 1.1, on the right hand side of the distribution are decreased
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-error-free
+#| tbl-cap: "Error free data set has mean of 1.03, standard deviation of 1, and standard error of 0.03"
+simulation_cleaned <- tibble(draws = rnorm(n = observations, mean = mean, sd = sd))
+
+true_mean <-
+  sum(simulation_cleaned$draws) / nrow(simulation_cleaned)
+
+simulation_cleaned <-
+  simulation_cleaned |>
+  mutate(diff_square = (draws - true_mean) ^ 2)
+
+true_standard_deviation <-
+  sqrt(sum(simulation_cleaned$diff_square) / (nrow(simulation_cleaned) - 1))
+
+true_standard_error <-
+  true_standard_deviation / sqrt(nrow(simulation_cleaned))
+
+kable(
+  tibble(mean = true_mean,
+         sd = true_standard_deviation,
+         se = true_standard_error),
+  col.names = c(
+    "True mean",
+    "True standard deviation",
+    "True standard error"
+  ),
+  digits = 2,
+  align = c("l", "r", "r"),
+  booktabs = TRUE,
+  linesep = ""
+  )
+  
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-error
+#| tbl-cap: "Data set with errors has mean of 0.11, standard deviation of 0.09, and standard error of 0"
+estimated_mean <-
+  sum(simulation$draws) / nrow(simulation)
+
+simulation <-
+  simulation |>
+  mutate(diff_square = (draws - estimated_mean) ^ 2)
+
+estimated_standard_deviation <-
+  sqrt(sum(simulation$diff_square) / (nrow(simulation) - 1))
+
+estimated_standard_error <-
+  estimated_standard_deviation / sqrt(nrow(simulation))
+
+kable(
+  tibble(mean = estimated_mean,
+         sd = estimated_standard_deviation,
+         se = estimated_standard_error),
+  col.names = c(
+    "Estimated mean",
+    "Estimated standard deviation",
+    "Estimated standard error"
+  ),
+  digits = 2,
+  align = c("l", "r", "r"),
+  booktabs = TRUE,
+  linesep = ""
+  )
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-dataset-graphs
+#| tbl-cap: "Both figures are normally distributed. Error free data has mean of one while data with errors' mean is closer to zero."
+cleaned_plot <-
+  simulation_cleaned |>
+  ggplot(aes(x = draws)) +
+  geom_density() +
+  ggtitle("Error Free Data") +
+  theme_minimal() 
+
+simulated_plot <-
+  simulation |>
+  ggplot(aes(x = draws)) +
+  geom_density() +
+  ggtitle("Data with Errors") +
+  theme_minimal() 
+
+ggarrange(cleaned_plot, simulated_plot, ncol = 2)
+```
+
