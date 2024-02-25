@@ -2,9 +2,10 @@
 title: "STA 302 Tutorial 7"
 format: pdf
 author: Diana Liu
-thanks: "Code and data are available at: https://github.com/Diana-Guanzhi-Liu/STA-302-Tutorial-7" 
+thanks: "Code and data are available at: https://github.com/Diana-Guanzhi-Liu/STA-302-Tutorial-7. Peer Review by Hannah Yu: https://github.com/Diana-Guanzhi-Liu/STA-302-Tutorial-7/issues/1" 
 date: 22 February 2024
 date-format: long
+bibliography: references.bib
 ---
 
 ```{r}
@@ -22,12 +23,12 @@ library(kableExtra)
 ```
 
 # Introduction
-In this exercise, we simulate how errors in data collection and cleaning can effect the estimated mean of a dataset in the data section then discuss potential ways to catch errors. The data set with errors has mean of 0.99, standard deviation of 1, and error of 0.03 (@tbl-error). Its probability density function and histogram seems to have binomial distribution with a peak between 0 and 1 and another between 1 and 2 (@fig-dataset-graphs) (@fig-dataset-histogram). Mean and standard deviation from the data set with errors do still suggest that true mean is greater than zero. 
+In this exercise, we simulate errors in data collection and cleaning using CiteR and discuss how they can effect the estimated mean of a dataset in the data section and potential ways to catch errors. The data set with errors has mean of 0.99, standard deviation of 1, and error of 0.03 (@tbl-error). Its probability density function and histogram seems to have binomial distribution with a peak between 0 and 1 and another between 1 and 2 (@fig-dataset-graphs) (@fig-dataset-histogram). Mean and standard deviation from the data set with errors do still suggest that true mean is greater than zero. 
 
 In general, errors can be detected by plotting the data set. How the graph differs from expectations can alert us to the fact that there could have been errors in the collection and cleaning of data. If we know that certain errors can occur, we can build functions that detects them, for example checking the frequency of negative observations.
 
 # Data
-First we simulate a data set of 900 observations with normal distribution, mean of 1 and standard deviation of 1. In situation 1, the last 100 observations of the data set has been replaced with the first 100. This is simulated by storing the first 100 observations in a variable then adding them to the end of the data set. Now the data set has 1000 observations and the first 100 are identical to the last 100 (@tbl-situation-1).
+First we simulate a data set of 900 observations with normal distribution, mean of 1 and standard deviation of 1. In situation one, the last 100 observations of the data set has been replaced with the first 100. This is simulated by storing the first 100 observations in a variable then adding them to the end of the data set. Now the data set has 1000 observations and the first 100 are identical to the last 100 (@tbl-situation-1).
 ```{r}
 #| echo: false
 #| warning: false
@@ -45,8 +46,7 @@ head <- kable(head(simulation, 10), col.names = "head")
 tail <- kable(simulation[901:910, "draws"], col.names = "tail")
 knitr::kable(list(head, tail))
 ```
-
-Then half of the negative numbers in the data set are changed to positives. First we count the number of negative numbers and divide it by two to get the amount of negatives that has to be changed. Then we iterate through the data set and change negatives to positives by multiplying by -1 until half of negatives have been changed (@tbl-situation-2). If we scroll through the data set, negative numbers only being to appear after 500 observations, which is consistent with turning the first half of them positive.
+In situation two half of the negative numbers in the data set are changed to positives. First we count the number of negative numbers and divide it by two to get the amount of negatives that has to be changed. Then we iterate through the data set and change negatives to positives by multiplying by negative one until half of negatives have been changed (@tbl-situation-2). If we scroll through the data set, negative numbers only being to appear after 500 observations, which is consistent with turning the first half of them positive.
 
 ```{r}
 #| echo: false
@@ -71,7 +71,7 @@ head2 <- kable(head(simulation, 10), col.names = "head_no_negatives")
 knitr::kable(list(head, head2))
 ```
 
-Now we change the decimal place of any value between 1 and 1.1. To do this we iterate through the data set and check if the observation is between 1 and 1.1, if true, multiply it by 0.1, shifting the decimal to the left (@tbl-situation-3).
+In situation three, the decimal place of any value between 1 and 1.1 is shifter to the left by one digit. To do this we iterate through the data set and check if the observation is between 1 and 1.1, if true, multiply it by 0.1 (@tbl-situation-3).
 
 ```{r}
 #| echo: false
@@ -90,20 +90,19 @@ head3 <- kable(head(simulation, 10), col.names = "head_smaller_decimals")
 knitr::kable(list(head, head3))
 ```
 
-
 # Discussion
 Now the mean, standard deviation, and standard error from the simulated data set with errors can be compared to a simulated data set without errors. We know that the true mean and standard deviation would be one, and the error free data set has mean of 1.03 and standard deviation of 1 which are quite close (@tbl-error-free). Its density function looks to be perfectly normally distributed with mean of one (@fig-dataset-graphs). The data set with errors has mean of 0.99, standard deviation of 1, and error of 0.03 (@tbl-error). It seems to have binomial distribution with a peak between 0 and 1 and another between 1 and 2 (@fig-dataset-graphs).  Mean and standard deviation from the data set with errors do still suggest that true mean is greater than zero.
 
-In general, these errors can be detected by plotting the density function of the data set. We expect the density plot to be normally distributed centered around one, but instead it is binomial. This alone alerts us to the fact that there could have been errors in the collection and cleaning of data.
+In general, these errors can be detected by plotting the data set in a probability density graph. We expect the plot to be normally distributed centered around one, and we have enough draws according to the Law of Large Numbers to get the correct shape [@CiteWasserman]. Because the graph is not the correct shape, this alerts us to the fact that there could have been errors in the collection and cleaning of data.
 
 ## Situation 1
 The change in situation 1 caused the first 100 observations to be the same as the last 100 so there are only 900 unique observations compared to 1000 for the error free data set. This is unlikely to significantly effect the mean & standard deviation and distribution because the observations are randomly generated and the number of observations were not significantly effected.
 
-This mistake is difficult to flag during analysis as it is difficult to tell if a pattern that exists in a data set is due to a mistake or not. In this case, if the data is manually reviewed, the over writing could have been detected. If we are aware of the mistake in the instrument, we can build a function that compares the first 100 observations to the last 100 to detect if over writing occurred. 
+This mistake is difficult to flag during analysis as it is difficult to tell if a pattern that exists in a data set is due to a mistake or not. If we are aware of the mistake in the instrument, we can manually review the data or build a function that compares the first 100 observations to the last 100 to detect if over writing occurred. 
 
 ## Situation 2
 
-Situation 2 caused half of negative observations to become positive. This will increase the mean of the data set with errors. This is likely what creates the peak around 1.25 in the density plot (@fig-dataset-graphs) as negative values on the left half of the graph are turned positive and moved to the right half. We expect observations to be normally distributed around 1 with standard deviation of 1 so most observations are between 0 and 2. This means that situation 2 is unlikely to effect standard deviation as any negative numbers that are converted to positive numbers influence standard deviation by the same amount. 
+Situation 2 caused half of negative observations to become positive. This will increase the mean of the data set with errors. This is likely what creates the peak around 1.25 in the density plot and histogram (@fig-dataset-graphs) (@fig-dataset-histogram) as negative values on the left half of the graph are turned positive and moved to the right half. We expect observations to be normally distributed around 1 with standard deviation of 1 so most observations are between 0 and 2. This means that situation 2 is unlikely to effect standard deviation as any negative numbers that are converted to positive numbers influence standard deviation by the same amount. 
 
 This error can be detected by checking the frequency of negative values. We would expect the simulation to generate negative values that are evenly spaced throughout the observations. With a function that detects the frequency of negative observations of just by manually scrolling through the data set, we will be able to flag this error and similar errors. 
 
