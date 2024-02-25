@@ -23,7 +23,7 @@ library(kableExtra)
 ```
 
 # Introduction
-In this exercise, we simulate errors in data collection and cleaning using CiteR and discuss how they can effect the estimated mean of a dataset in the data section and potential ways to catch errors. The data set with errors has mean of 0.99, standard deviation of 1, and error of 0.03 (@tbl-error). Its probability density function and histogram seems to have binomial distribution with a peak between 0 and 1 and another between 1 and 2 (@fig-dataset-graphs) (@fig-dataset-histogram). Mean and standard deviation from the data set with errors do still suggest that true mean is greater than zero. 
+In this exercise, we simulate errors in data collection and cleaning using @CiteR and discuss how they can effect the estimated mean of a dataset in the data section and potential ways to catch errors. The data set with errors has mean of 0.99, standard deviation of 1, and error of 0.03 (@tbl-error). Its probability density function and histogram seems to have binomial distribution with a peak between 0 and 1 and another between 1 and 2 (@fig-dataset-graphs) (@fig-dataset-histogram). Mean and standard deviation from the data set with errors do still suggest that true mean is greater than zero. 
 
 In general, errors can be detected by plotting the data set. How the graph differs from expectations can alert us to the fact that there could have been errors in the collection and cleaning of data. If we know that certain errors can occur, we can build functions that detects them, for example checking the frequency of negative observations.
 
@@ -231,4 +231,6 @@ simulated_histogram <-
 
 ggarrange(cleaned_histogram, simulated_histogram, ncol = 2)
 ```
+\newpage
+# References
 
