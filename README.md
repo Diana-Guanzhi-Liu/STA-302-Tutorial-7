@@ -1,1 +1,3 @@
 # STA-302-Tutorial-7
+
+This mini essay discusses a simulated exercise to examine errors in data collection and cleaning and their impact on the estimated mean of a dataset. The dataset under consideration has a true mean of 1 and standard deviation of 1. The simulated data set with errors had a mean of 0.99 and standard deviation of 1. Despite errors, the data still indicates a mean greater than zero. Initial detection of errors can be done by plotting the dataset and observing deviations from expected patterns. If possible ways that errors can occur are known, proactive measures such as building functions that compare sections of the data set against others can enhance detection.
